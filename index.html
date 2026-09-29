@@ -97,6 +97,8 @@ dialog[open]{animation:up .25s ease-out}
 .tot{display:flex;justify-content:space-between;align-items:baseline;font-weight:600;padding:12px 0 2px}
 .tot b{font-family:'Barlow Condensed',sans-serif;font-size:30px;letter-spacing:.5px}
 .aviso{font-size:13px;color:var(--ink3);margin-top:4px}
+.aviso.warn{color:var(--err);font-weight:500}
+.cerrado{background:#FBE9EA;border:1px solid #F0C4C8;color:#8E2F38;border-radius:14px;padding:14px 16px;margin-top:18px;font-weight:500;text-align:center}
 .f{margin-top:14px;display:flex;flex-direction:column;gap:5px}
 .f label,.f legend{font-size:13px;font-weight:600}
 .f input[type=text],.f input[type=tel],.f textarea{width:100%;min-height:46px;padding:10px 14px;border:1px solid #CFC9BC;border-radius:12px;background:var(--surface)}
@@ -145,6 +147,7 @@ fieldset.f{border:0;min-width:0}
   </ol>
 </div>
 <main class="wrap">
+  <div class="cerrado" id="cerrado" role="status" hidden></div>
   <div class="buscar" id="buscar" hidden><label class="sr" for="q">Buscar producto</label><input type="search" id="q" placeholder="Buscar producto..." autocomplete="off"></div>
   <div id="estado" class="estado" role="status">Cargando...</div>
   <div id="grid" class="grid" hidden></div>
@@ -165,7 +168,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ar=n=>'$'+Math.round(n).toLocaleString('es-AR');
 const KEY='tienda:'+API_URL.slice(-14);
-let NEG={},PRODS=[],CART={},enviando=false;
+let NEG={},PRODS=[],CART={},enviando=false,TIENDA={abierto:true,msg:'',minimo:0};
 (function(){const r=document.documentElement.style;r.setProperty('--gold',TEMA.acento);r.setProperty('--gold-d',TEMA.acentoTexto);r.setProperty('--ink',TEMA.oscuro);})();
 
 function leer(k){try{return JSON.parse(localStorage.getItem(k)||'null');}catch(e){return null;}}
@@ -173,6 +176,18 @@ function guardar(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
 const cant=()=>Object.values(CART).reduce((a,q)=>a+q,0);
 const total=()=>Object.keys(CART).reduce((a,id)=>{const p=PRODS.find(x=>x.id===id);return a+(p?p.p*CART[id]:0);},0);
 const prod=id=>PRODS.find(x=>x.id===id);
+const falta=()=>Math.max(0,(TIENDA.minimo||0)-total());
+function avisoMin(){
+  const m=TIENDA.minimo||0;
+  if(!(m>0))return '';
+  return falta()>0?'<p class="aviso warn">Pedido mínimo '+ar(m)+'. Te faltan '+ar(falta())+'.</p>':'';
+}
+function ajustarEnviar(){const b=$('enviar');if(b&&!enviando)b.disabled=falta()>0;}
+function pintarCerrado(){
+  const el=$('cerrado');
+  el.hidden=TIENDA.abierto;
+  el.textContent=TIENDA.abierto?'':(TIENDA.msg||'Estamos cerrados por ahora.');
+}
 
 function conFoco(el,html){
   const a=document.activeElement,k=a&&a.dataset&&a.dataset.act&&el.contains(a)?[a.dataset.act,a.dataset.id]:null;
@@ -186,6 +201,7 @@ function stepper(id,q,nombre){
   return '<div class="step" role="group" aria-label="Cantidad de '+esc(nombre)+'"><button type="button" data-act="dec" data-id="'+esc(id)+'" aria-label="Quitar uno">−</button><output aria-live="polite">'+q+'</output><button type="button" data-act="inc" data-id="'+esc(id)+'" aria-label="Agregar uno">+</button></div>';
 }
 function ctl(p){
+  if(!TIENDA.abierto)return '<button type="button" class="btn" disabled>Cerrado</button>';
   const q=CART[p.id]||0;
   return q?stepper(p.id,q,p.n):'<button type="button" class="btn" data-act="add" data-id="'+esc(p.id)+'">Agregar<span class="sr"> '+esc(p.n)+'</span></button>';
 }
@@ -205,13 +221,14 @@ function pintarGrid(){
 }
 function pintarBarra(){
   const n=cant(),b=$('bar');
-  b.hidden=!n;
+  b.hidden=!n||!TIENDA.abierto;
   if(n)$('bar-btn').innerHTML='<span class="izq"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2 3h2l2.4 12.4a2 2 0 0 0 2 1.6h9.2a2 2 0 0 0 2-1.6L22 7H6"/></svg><i aria-hidden="true">'+n+'</i></span><span>Ver pedido<span class="sr"> ('+n+(n===1?' producto':' productos')+')</span></span></span><b>'+ar(total())+'</b>';
 }
 function pintarResumen(){
   const el=$('resumen');if(!el)return;
   const ids=Object.keys(CART).filter(id=>prod(id));
-  conFoco(el,ids.map(id=>{const p=prod(id),q=CART[id];return '<div class="item"><div class="nm">'+esc(p.n)+'</div><div class="sub">'+ar(p.p)+' c/u · '+ar(p.p*q)+'</div>'+stepper(id,q,p.n)+'</div>';}).join('')+'<div class="tot"><span>Total productos</span><span>'+ar(total())+'</span></div>');
+  conFoco(el,ids.map(id=>{const p=prod(id),q=CART[id];return '<div class="item"><div class="nm">'+esc(p.n)+'</div><div class="sub">'+ar(p.p)+' c/u · '+ar(p.p*q)+'</div>'+stepper(id,q,p.n)+'</div>';}).join('')+'<div class="tot"><span>Total productos</span><span>'+ar(total())+'</span></div>'+avisoMin());
+  ajustarEnviar();
 }
 function cambiar(id,d){
   const p=prod(id);if(!p)return;
@@ -224,6 +241,7 @@ function cambiar(id,d){
 }
 
 function abrir(){
+  if(!TIENDA.abierto)return;
   const g=leer(KEY+':cli')||{};
   $('dlg-t').textContent='Tu pedido';
   $('dlg-body').innerHTML=
@@ -276,6 +294,7 @@ async function enviar(ev){
   };
   const items=Object.keys(CART).map(id=>({id:id,q:CART[id]}));
   if(!items.length){err.textContent='El carrito está vacío.';return;}
+  if(falta()>0){err.textContent='El pedido mínimo es '+ar(TIENDA.minimo)+'.';return;}
   enviando=true;const b=$('enviar');b.disabled=true;b.textContent='Enviando...';
   try{
     const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({},c,{hp:$('f-hp').value,items:items}))});
@@ -288,8 +307,8 @@ async function enviar(ev){
   }catch(e){
     const m=String(e.message||'');
     err.textContent=/Failed to fetch|NetworkError|Load failed|JSON/i.test(m)?'No pudimos enviar el pedido. Revisá tu conexión e intentá de nuevo.':m;
-    if(/ya no está disponible/i.test(m))cargar(true);
-    b.disabled=false;b.textContent='Enviar pedido';
+    if(/ya no está disponible|Estamos cerrados|no abrimos|pedido mínimo/i.test(m))cargar(true);
+    b.textContent='Enviar pedido';b.disabled=falta()>0;
   }finally{enviando=false;}
 }
 
@@ -300,6 +319,7 @@ async function cargar(silencioso){
     const d=await r.json();
     if(!d.ok)throw new Error(d.error||'Error');
     NEG=d.negocio||{};PRODS=d.productos||[];
+    TIENDA=Object.assign({abierto:true,msg:'',minimo:0},d.tienda||{});
     Object.keys(CART).forEach(id=>{if(!prod(id))delete CART[id];});
     guardar(KEY,CART);
     document.title=NEG.nombre||'Tienda';
@@ -309,9 +329,11 @@ async function cargar(silencioso){
     if(NEG.ciudad)chips.push('<li><span>'+esc(NEG.ciudad)+'</span></li>');
     if(NEG.instagram){const u=String(NEG.instagram).replace(/^@/,'');chips.push('<li><a href="https://instagram.com/'+encodeURIComponent(u)+'" target="_blank" rel="noopener">@'+esc(u)+'</a></li>');}
     if(NEG.wa)chips.push('<li><a href="https://wa.me/'+esc(NEG.wa)+'" target="_blank" rel="noopener">Escribinos por WhatsApp</a></li>');
+    if(TIENDA.minimo>0)chips.push('<li><span>Pedido mínimo '+ar(TIENDA.minimo)+'</span></li>');
     $('chips').innerHTML=chips.join('');
     $('foot-n').textContent=NEG.nombre?'© '+new Date().getFullYear()+' '+NEG.nombre:'';
     $('buscar').hidden=PRODS.length<=8;
+    pintarCerrado();
     pintarGrid();pintarBarra();
   }catch(e){
     if(silencioso)return;
@@ -349,6 +371,7 @@ document.addEventListener('change',ev=>{
 $('q').addEventListener('input',pintarGrid);
 CART=leer(KEY)||{};
 cargar();
+setInterval(()=>{if(!document.hidden&&!$('dlg').open)cargar(true);},300000);
 setTimeout(()=>{const l=document.querySelector('.sw');if(l)l.classList.add('on');},700);
 </script>
 </body>
