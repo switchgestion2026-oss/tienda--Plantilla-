@@ -111,7 +111,11 @@ dialog[open]{animation:up .25s ease-out}
 .tot b{font-family:'Barlow Condensed',sans-serif;font-size:30px;letter-spacing:.5px}
 .aviso{font-size:13px;color:var(--ink3);margin-top:4px}
 .aviso.warn{color:var(--err);font-weight:500}
-.cerrado{position:relative;background:var(--surface);border:3px solid var(--gold);border-radius:16px;padding:34px 18px 18px;margin:34px auto 6px;max-width:340px;text-align:center;transform:rotate(-1.2deg);box-shadow:0 6px 18px rgba(0,0,0,.08)}
+.cerrado{position:relative;z-index:2;background:var(--surface);border:3px solid var(--gold);border-radius:16px;padding:34px 18px 18px;margin:-18px auto 10px;max-width:340px;text-align:center;transform:rotate(-1.2deg);transform-origin:50% -30px;box-shadow:0 14px 30px -10px rgba(23,25,28,.35);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cerrado.swing{animation:swing 1.6s cubic-bezier(.36,.07,.19,.97)}
+@keyframes swing{0%{transform:rotate(-1.2deg)}15%{transform:rotate(8deg)}35%{transform:rotate(-6deg)}55%{transform:rotate(3.5deg)}75%{transform:rotate(-2.5deg)}90%{transform:rotate(0)}100%{transform:rotate(-1.2deg)}}
+body.cerr .pasos{display:none}
+body.cerr .grid{opacity:.55;filter:grayscale(.3)}
 .cerrado::before{content:"";position:absolute;top:10px;left:50%;width:12px;height:12px;margin-left:-6px;border-radius:50%;border:3px solid var(--gold);background:var(--bg)}
 .cerrado::after{content:"";position:absolute;top:-30px;left:50%;width:2px;height:40px;background:var(--gold);transform:translateX(-1px)}
 .cerrado small{display:block;font-size:13px;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase}
@@ -218,6 +222,7 @@ function horariosAgrupados(h){
 function pintarCerrado(){
   const el=$('cerrado');
   el.hidden=TIENDA.abierto;
+  document.body.classList.toggle('cerr',!TIENDA.abierto);
   if(TIENDA.abierto){el.innerHTML='';return;}
   const msg=TIENDA.msg||'Estamos cerrados por ahora.';
   const vuelve=(msg.match(/(Abrimos .*)$/)||[])[1]||'';
@@ -421,6 +426,13 @@ document.addEventListener('change',ev=>{
   }
 });
 $('q').addEventListener('input',pintarGrid);
+(function(){
+  const c=$('cerrado');
+  const hamaca=()=>{c.classList.remove('swing');void c.offsetWidth;c.classList.add('swing');};
+  c.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse'&&!c.classList.contains('swing'))hamaca();});
+  c.addEventListener('click',hamaca);
+  c.addEventListener('animationend',()=>c.classList.remove('swing'));
+})();
 CART=leer(KEY)||{};
 cargar();
 setInterval(()=>{if(!document.hidden&&!$('dlg').open)cargar(true);},300000);
