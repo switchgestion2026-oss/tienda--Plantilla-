@@ -2,9 +2,22 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'self'; frame-src 'none'">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Tienda</title> <link rel="icon" type="image/png" href="switch-favicon.png">
+<title>NOMBRE DEL NEGOCIO · Pedidos online</title> <link rel="icon" type="image/png" href="switch-favicon.png">
+<meta name="description" content="Hacé tu pedido online: retiro en el local o envío a domicilio. Te confirmamos por WhatsApp.">
+<meta name="theme-color" content="#17191C">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://USUARIO.github.io/REPO/">
+<meta property="og:title" content="NOMBRE DEL NEGOCIO · Pedidos online">
+<meta property="og:description" content="Elegí tus productos, mandá tu pedido y te confirmamos por WhatsApp.">
+<meta property="og:image" content="https://USUARIO.github.io/REPO/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://script.google.com" crossorigin>
+<link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@700&display=swap">
 <style>
 :root{--bg:#F5F2EC;--surface:#fff;--ink:#17191C;--ink2:#4A4D50;--ink3:#5F6265;--line:#E4E0D8;--gold:#B8946A;--gold-d:#8A6A42;--ok:#3F7050;--err:#A63A44;--r:18px}
@@ -122,6 +135,7 @@ fieldset.f{border:0;min-width:0}
 .err{color:var(--err);font-weight:500;margin-top:12px}
 .err:empty{display:none}
 .envia{margin-top:16px}
+.priv{margin-top:10px;font-size:12px;text-align:center}
 .okic{width:60px;height:60px;border-radius:50%;background:var(--ok);color:#fff;display:flex;align-items:center;justify-content:center;font-size:32px;margin:8px 0 12px;animation:pop .45s}
 .okv h3{font-family:'Barlow Condensed',sans-serif;font-size:30px;letter-spacing:.5px;line-height:1.1;margin-bottom:4px}
 .okv p{color:var(--ink2);margin-top:6px}
@@ -177,11 +191,12 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ar=n=>'$'+Math.round(n).toLocaleString('es-AR');
 const KEY='tienda:'+API_URL.slice(-14);
-let NEG={},PRODS=[],CART={},enviando=false,TIENDA={abierto:true,msg:'',minimo:0};
+let NEG={},PRODS=[],CART={},enviando=false,TIENDA={abierto:true,msg:'',minimo:0},T0=0;
 (function(){const r=document.documentElement.style;r.setProperty('--gold',TEMA.acento);r.setProperty('--gold-d',TEMA.acentoTexto);r.setProperty('--ink',TEMA.oscuro);})();
 
 function leer(k){try{return JSON.parse(localStorage.getItem(k)||'null');}catch(e){return null;}}
 function guardar(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function track(ev,data){try{if(window.fbq)fbq('track',ev,data);if(window.dataLayer)dataLayer.push(Object.assign({event:ev},data));}catch(e){}}
 const cant=()=>Object.values(CART).reduce((a,q)=>a+q,0);
 const total=()=>Object.keys(CART).reduce((a,id)=>{const p=PRODS.find(x=>x.id===id);return a+(p?p.p*CART[id]:0);},0);
 const prod=id=>PRODS.find(x=>x.id===id);
@@ -257,6 +272,7 @@ function cambiar(id,d){
   const p=prod(id);if(!p)return;
   const q=Math.max(0,Math.min(50,(CART[id]||0)+d));
   if(q)CART[id]=q;else delete CART[id];
+  if(d>0)track('AddToCart',{content_ids:[id],content_type:'product',value:p.p,currency:'ARS'});
   guardar(KEY,CART);
   const c=$('ctl-'+id);if(c){conFoco(c,ctl(p));const cd=c.closest('.card');if(cd)cd.classList.toggle('en',!!CART[id]);}
   pintarBarra();
@@ -284,8 +300,11 @@ function abrir(){
   '<div class="hp" aria-hidden="true"><label>No completar<input type="text" id="f-hp" tabindex="-1" autocomplete="off"></label></div>'+
   '<div class="err" id="err" role="alert"></div>'+
   '<div class="envia"><button type="submit" class="btn" id="enviar">Enviar pedido</button></div>'+
+  '<p class="aviso priv">'+esc(NEG.nombre||'El local')+' usa tus datos solo para preparar y coordinar este pedido; no los compartimos. Quedan guardados en este dispositivo para agilizar tu próxima compra. Podés pedir que los borremos por WhatsApp.</p>'+
   '</form>';
   pintarResumen();
+  T0=Date.now();
+  track('InitiateCheckout',{value:total(),currency:'ARS',num_items:cant()});
   $('dlg').showModal();
 }
 
@@ -320,27 +339,40 @@ async function enviar(ev){
   if(falta()>0){err.textContent='El pedido mínimo es '+ar(TIENDA.minimo)+'.';return;}
   enviando=true;const b=$('enviar');b.disabled=true;b.textContent='Enviando...';
   try{
-    const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({},c,{hp:$('f-hp').value,items:items}))});
+    const ac=new AbortController(),to=setTimeout(()=>ac.abort(),25000);
+    const r=await fetch(API_URL,{method:'POST',signal:ac.signal,headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({},c,{hp:$('f-hp').value,t:Date.now()-T0,items:items}))}).finally(()=>clearTimeout(to));
     const d=await r.json();
     if(!d.ok)throw new Error(d.error||'No se pudo enviar el pedido.');
     guardar(KEY+':cli',{cliente:c.cliente,whatsapp:c.whatsapp,direccion:c.direccion});
+    track('Purchase',{value:d.total,currency:'ARS',content_ids:(d.items||[]).map(i=>i.id)});
     CART={};guardar(KEY,CART);
     pintarGrid();pintarBarra();
     vistaOk(d,c);
   }catch(e){
     const m=String(e.message||'');
-    err.textContent=/Failed to fetch|NetworkError|Load failed|JSON/i.test(m)?'No pudimos enviar el pedido. Revisá tu conexión e intentá de nuevo.':m;
+    err.textContent=e.name==='AbortError'?'Está tardando más de lo normal. Tocá "Enviar pedido" de nuevo: si ya había entrado, te avisamos.':/Failed to fetch|NetworkError|Load failed|JSON/i.test(m)?'No pudimos enviar el pedido. Revisá tu conexión e intentá de nuevo.':m;
     if(/ya no está disponible|Estamos cerrados|no abrimos|pedido mínimo/i.test(m))cargar(true);
     b.textContent='Enviar pedido';b.disabled=falta()>0;
   }finally{enviando=false;}
 }
 
 async function cargar(silencioso){
-  if(!silencioso){$('estado').hidden=false;$('estado').textContent='Cargando...';$('grid').hidden=true;}
+  const cat=silencioso?null:leer(KEY+':cat');
+  if(cat){aplicar(cat);silencioso=true;}
+  else if(!silencioso){$('estado').hidden=false;$('estado').textContent='Cargando...';$('grid').hidden=true;}
   try{
     const r=await fetch(API_URL+'?a=catalogo');
     const d=await r.json();
     if(!d.ok)throw new Error(d.error||'Error');
+    guardar(KEY+':cat',{negocio:d.negocio,productos:d.productos,tienda:{minimo:(d.tienda||{}).minimo||0}});
+    aplicar(d);
+  }catch(e){
+    if(silencioso)return;
+    $('estado').innerHTML='No pudimos cargar los productos.<br><button type="button" class="btn sec" data-act="reintentar">Reintentar</button>';
+  }
+}
+function aplicar(d){
+  {
     NEG=d.negocio||{};PRODS=d.productos||[];
     TIENDA=Object.assign({abierto:true,msg:'',minimo:0},d.tienda||{});
     Object.keys(CART).forEach(id=>{if(!prod(id))delete CART[id];});
@@ -358,9 +390,6 @@ async function cargar(silencioso){
     $('buscar').hidden=PRODS.length<=8;
     pintarCerrado();
     pintarGrid();pintarBarra();
-  }catch(e){
-    if(silencioso)return;
-    $('estado').innerHTML='No pudimos cargar los productos.<br><button type="button" class="btn sec" data-act="reintentar">Reintentar</button>';
   }
 }
 
