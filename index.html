@@ -98,7 +98,16 @@ dialog[open]{animation:up .25s ease-out}
 .tot b{font-family:'Barlow Condensed',sans-serif;font-size:30px;letter-spacing:.5px}
 .aviso{font-size:13px;color:var(--ink3);margin-top:4px}
 .aviso.warn{color:var(--err);font-weight:500}
-.cerrado{background:#FBE9EA;border:1px solid #F0C4C8;color:#8E2F38;border-radius:14px;padding:14px 16px;margin-top:18px;font-weight:500;text-align:center}
+.cerrado{position:relative;background:var(--surface);border:3px solid var(--gold);border-radius:16px;padding:34px 18px 18px;margin:34px auto 6px;max-width:340px;text-align:center;transform:rotate(-1.2deg);box-shadow:0 6px 18px rgba(0,0,0,.08)}
+.cerrado::before{content:"";position:absolute;top:10px;left:50%;width:12px;height:12px;margin-left:-6px;border-radius:50%;border:3px solid var(--gold);background:var(--bg)}
+.cerrado::after{content:"";position:absolute;top:-30px;left:50%;width:2px;height:40px;background:var(--gold);transform:translateX(-1px)}
+.cerrado small{display:block;font-size:13px;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase}
+.cerrado h2{margin:2px 0 6px;font-size:34px;letter-spacing:.08em;color:var(--gold-d)}
+.cerrado .vuelve{font-weight:600;margin-bottom:14px}
+.cerrado .hor{border-top:1px dashed var(--gold);padding-top:12px;font-size:14px;color:var(--ink2)}
+.cerrado .hor b{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);margin-bottom:6px}
+.cerrado .hor div{display:flex;justify-content:space-between;gap:12px;padding:3px 0;text-align:left}
+.cerrado .hor span{font-weight:600;white-space:nowrap}
 .f{margin-top:14px;display:flex;flex-direction:column;gap:5px}
 .f label,.f legend{font-size:13px;font-weight:600}
 .f input[type=text],.f input[type=tel],.f textarea{width:100%;min-height:46px;padding:10px 14px;border:1px solid #CFC9BC;border-radius:12px;background:var(--surface)}
@@ -183,10 +192,24 @@ function avisoMin(){
   return falta()>0?'<p class="aviso warn">Pedido mínimo '+ar(m)+'. Te faltan '+ar(falta())+'.</p>':'';
 }
 function ajustarEnviar(){const b=$('enviar');if(b&&!enviando)b.disabled=falta()>0;}
+function horariosAgrupados(h){
+  const N=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+  const t=(h||[]).map(s=>{const x=String(s||'').split(',').map(v=>v.trim()).filter(v=>/\d/.test(v));return x.length?x.map(v=>v.replace('-','–')).join(' / '):'Cerrado';});
+  const out=[];
+  for(let i=0;i<7&&t.length===7;){let j=i;while(j+1<7&&t[j+1]===t[i])j++;
+    out.push({d:j===i?N[i]:j===i+1?N[i]+' y '+N[j]:N[i]+' a '+N[j],v:t[i]});i=j+1;}
+  return out;
+}
 function pintarCerrado(){
   const el=$('cerrado');
   el.hidden=TIENDA.abierto;
-  el.textContent=TIENDA.abierto?'':(TIENDA.msg||'Estamos cerrados por ahora.');
+  if(TIENDA.abierto){el.innerHTML='';return;}
+  const msg=TIENDA.msg||'Estamos cerrados por ahora.';
+  const vuelve=(msg.match(/(Abrimos .*)$/)||[])[1]||'';
+  const hs=horariosAgrupados(TIENDA.horarios);
+  el.innerHTML='<small>Lo sentimos, estamos</small><h2>CERRADO</h2>'
+    +(vuelve?'<div class="vuelve">'+esc(vuelve.replace(/^Abrimos/,'Volvemos'))+'</div>':'<div class="vuelve">'+esc(msg)+'</div>')
+    +(hs.length?'<div class="hor"><b>Horario de atención</b>'+hs.map(x=>'<div>'+esc(x.d)+'<span>'+esc(x.v)+'</span></div>').join('')+'</div>':'');
 }
 
 function conFoco(el,html){
