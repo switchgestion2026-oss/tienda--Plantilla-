@@ -4,15 +4,18 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'self'; frame-src 'none'">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NOMBRE DEL NEGOCIO · Pedidos online</title> <link rel="icon" type="image/png" href="switch-favicon.png">
-<meta name="description" content="Hacé tu pedido online: retiro en el local o envío a domicilio. Te confirmamos por WhatsApp.">
-<meta name="theme-color" content="#17191C">
+<!-- ===== DATOS DEL CLIENTE: completar al instalar (también H1 y API_URL) ===== -->
+<title>NOMBRE_NEGOCIO · Pedidos online</title>
+<meta name="description" content="DESCRIPCION_CORTA">
+<meta property="og:url" content="URL_TIENDA">
+<meta property="og:title" content="NOMBRE_NEGOCIO · Pedidos online">
+<meta property="og:description" content="DESCRIPCION_CORTA">
+<meta property="og:image" content="URL_TIENDA/og.jpg">
+<!-- ===== FIN DATOS DEL CLIENTE ===== -->
+<link rel="icon" type="image/png" href="switch-favicon.png">
+<meta name="theme-color" content="#2A2724">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://USUARIO.github.io/REPO/">
-<meta property="og:title" content="NOMBRE DEL NEGOCIO · Pedidos online">
-<meta property="og:description" content="Elegí tus productos, mandá tu pedido y te confirmamos por WhatsApp.">
-<meta property="og:image" content="https://USUARIO.github.io/REPO/og.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,7 +38,7 @@ button,input,textarea{font:inherit;color:inherit}
 .hero::before{width:240px;height:240px;right:-120px;top:-110px;opacity:.28}
 .hero::after{width:180px;height:180px;left:-120px;bottom:-110px;opacity:.2}
 .hero .wrap{position:relative;z-index:1}
-.hero h1 .logo{display:block;max-height:96px;max-width:70%;width:auto;height:auto}
+.hero h1 .logo{display:block;width:104px;height:104px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 3px var(--gold),0 10px 24px -8px rgba(0,0,0,.45)}
 .kick{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold)}
 .kick::before{content:'';width:26px;height:2px;background:var(--gold);border-radius:2px}
 .hero h1{font-family:var(--ft);font-size:clamp(42px,11vw,72px);letter-spacing:2px;text-transform:uppercase;line-height:1.02;margin-top:10px}
@@ -76,6 +79,11 @@ button,input,textarea{font:inherit;color:inherit}
 .step output{font-weight:600;min-width:28px;text-align:center}
 .estado{text-align:center;color:var(--ink2);padding:60px 16px}
 .estado .btn{width:auto;margin-top:14px}
+.sk{pointer-events:none}
+.sk .ph::before{display:none}
+.sk .nm,.sk .pr{background:var(--line);border-radius:6px;color:transparent}
+.sk .nm{width:70%}
+.sk .pr{width:40%;height:26px;padding:0;margin-top:14px}
 
 /* BARRA CARRITO */
 .bar{position:fixed;left:0;right:0;bottom:0;padding:26px 16px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(rgba(245,242,236,0),var(--bg) 45%);pointer-events:none;z-index:5}
@@ -101,7 +109,7 @@ dialog{width:min(560px,calc(100% - 20px));max-height:calc(100dvh - 20px);margin:
 dialog::backdrop{background:rgba(23,25,28,.55)}
 dialog[open]{animation:up .25s ease-out}
 @keyframes up{from{transform:translateY(24px);opacity:0}}
-@media(max-width:600px){dialog{width:100%;max-height:92dvh;margin:auto 0 0;border-radius:24px 24px 0 0}}
+@media(max-width:600px){dialog{width:100%;max-width:100%;max-height:92dvh;margin:auto 0 0;border-radius:24px 24px 0 0}}
 .dh{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 6px;position:sticky;top:0;background:var(--bg);z-index:1}
 .dh h2{font-family:var(--ft);font-size:28px;letter-spacing:1px;text-transform:uppercase}
 .x{width:44px;height:44px;border:0;background:none;font-size:26px;cursor:pointer;border-radius:10px}
@@ -156,6 +164,8 @@ fieldset.f{border:0;min-width:0}
   .btn,.opt span,.card{transition:background .15s,transform .2s,box-shadow .2s}
   .card{animation:in .45s both;animation-delay:calc(var(--i,0)*45ms)}
   .card:hover{transform:translateY(-3px)}
+  .card.sk{animation:sk 1s ease-in-out infinite alternate}
+  @keyframes sk{to{opacity:.45}}
   .ph img{transition:transform .4s}
   .card:hover .ph img{transform:scale(1.05)}
   @keyframes in{from{opacity:0;transform:translateY(14px)}}
@@ -166,7 +176,7 @@ fieldset.f{border:0;min-width:0}
 <body>
 <header class="hero"><div class="wrap">
   <p class="kick">Pedidos online</p>
-  <h1 id="nombre">&nbsp;</h1>
+  <h1 id="nombre">NOMBRE_NEGOCIO</h1>
   <p class="tag" id="tag"></p>
   <ul class="chips" id="chips"></ul>
 </div></header>
@@ -180,8 +190,8 @@ fieldset.f{border:0;min-width:0}
 <main class="wrap">
   <div class="cerrado" id="cerrado" role="status" hidden></div>
   <div class="buscar" id="buscar" hidden><label class="sr" for="q">Buscar producto</label><input type="search" id="q" placeholder="Buscar producto..." autocomplete="off"></div>
-  <div id="estado" class="estado" role="status">Cargando...</div>
-  <div id="grid" class="grid" hidden></div>
+  <div id="estado" class="estado" role="status" hidden></div>
+  <div id="grid" class="grid"></div>
   <noscript><p class="estado">Para hacer un pedido necesitás activar JavaScript.</p></noscript>
 </main>
 <footer class="foot"><p id="foot-n"></p><p class="cred"><svg class="sw" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="#111"/><rect x="7" y="14.5" width="26" height="11" rx="5.5" fill="none" stroke="#B8946A" stroke-width="1.8"/><circle class="sw-k" cx="13" cy="20" r="3.6"/></svg><span>Tienda hecha con <b>Switch Gestión</b></span></p></footer>
@@ -205,19 +215,28 @@ const TEMA={
   radio:18,
   logo:''
 };
-const API_URL='https://script.google.com/macros/s/AKfycbyVSXInLvzo4Xi9vfj9buOZMD8DfnXVr2DFh7dyBL6Ui3SDW6k-axzf_oBZVOKMjbKPqA/exec';
+const API_URL='URL_IMPLEMENTACION_APPS_SCRIPT';
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ar=n=>'$'+Math.round(n).toLocaleString('es-AR');
 const KEY='tienda:'+API_URL.slice(-14);
-let NEG={},PRODS=[],CART={},enviando=false,TIENDA={abierto:true,msg:'',minimo:0},T0=0;
-(function(){
-  const r=document.documentElement.style,T=TEMA;
+let NEG={},PRODS=[],CART={},enviando=false,TIENDA={abierto:true,msg:'',minimo:0},T0=0,PID='';
+let TA=TEMA;
+function pintarTema(x){
+  const T=Object.assign({},TEMA,x||{}),r=document.documentElement.style;
   r.setProperty('--gold',T.acento);r.setProperty('--gold-d',T.acentoTexto);r.setProperty('--ink',T.oscuro);
   r.setProperty('--bg',T.fondo);r.setProperty('--surface',T.superficie);r.setProperty('--line',T.borde);r.setProperty('--r',T.radio+'px');
   r.setProperty('--ft',"'"+T.fuenteTitulos+"',sans-serif");r.setProperty('--fb',"'"+T.fuenteTexto+"',system-ui,sans-serif");
   const m=document.querySelector('meta[name="theme-color"]');if(m)m.content=T.oscuro;
-})();
+  [T.fuenteTitulos,T.fuenteTexto].forEach(f=>{
+    if(!f||/^Barlow( Condensed)?$/.test(f)||document.querySelector('link[data-f="'+f+'"]'))return;
+    const l=document.createElement('link');l.rel='stylesheet';l.dataset.f=f;
+    l.href='https://fonts.googleapis.com/css2?family='+f.replace(/ /g,'+')+':wght@400;700&display=swap';
+    document.head.appendChild(l);
+  });
+  TA=T;
+}
+pintarTema(leer(KEY+':tema'));
 
 function leer(k){try{return JSON.parse(localStorage.getItem(k)||'null');}catch(e){return null;}}
 function guardar(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
@@ -329,7 +348,7 @@ function abrir(){
   '<p class="aviso priv">'+esc(NEG.nombre||'El local')+' usa tus datos solo para preparar y coordinar este pedido; no los compartimos. Quedan guardados en este dispositivo para agilizar tu próxima compra. Podés pedir que los borremos por WhatsApp.</p>'+
   '</form>';
   pintarResumen();
-  T0=Date.now();
+  T0=Date.now();PID=Date.now().toString(36)+Math.random().toString(36).slice(2);
   track('InitiateCheckout',{value:total(),currency:'ARS',num_items:cant()});
   $('dlg').showModal();
 }
@@ -360,15 +379,17 @@ async function enviar(ev){
     entrega:f.entrega.value,direccion:f.entrega.value==='Envío'?$('f-dir').value.trim():'',
     pago:f.pago.value,nota:$('f-nota').value.trim()
   };
+  const dig=c.whatsapp.replace(/\D/g,'');
+  if(dig.length<8||dig.length>15){err.textContent='Revisá tu WhatsApp: tiene que tener entre 8 y 15 números.';$('f-wa').focus();return;}
   const items=Object.keys(CART).map(id=>({id:id,q:CART[id]}));
   if(!items.length){err.textContent='El carrito está vacío.';return;}
   if(falta()>0){err.textContent='El pedido mínimo es '+ar(TIENDA.minimo)+'.';return;}
   enviando=true;const b=$('enviar');b.disabled=true;b.textContent='Enviando...';
   try{
     const ac=new AbortController(),to=setTimeout(()=>ac.abort(),25000);
-    const r=await fetch(API_URL,{method:'POST',signal:ac.signal,headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({},c,{hp:$('f-hp').value,t:Date.now()-T0,items:items}))}).finally(()=>clearTimeout(to));
+    const r=await fetch(API_URL,{method:'POST',signal:ac.signal,headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({},c,{hp:$('f-hp').value,t:Date.now()-T0,pid:PID,items:items}))}).finally(()=>clearTimeout(to));
     const d=await r.json();
-    if(!d.ok)throw new Error(d.error||'No se pudo enviar el pedido.');
+    if(!d.ok){const x=new Error(d.error||'No se pudo enviar el pedido.');x.srv=1;throw x;}
     guardar(KEY+':cli',{cliente:c.cliente,whatsapp:c.whatsapp,direccion:c.direccion});
     track('Purchase',{value:d.total,currency:'ARS',content_ids:(d.items||[]).map(i=>i.id)});
     CART={};guardar(KEY,CART);
@@ -376,7 +397,7 @@ async function enviar(ev){
     vistaOk(d,c);
   }catch(e){
     const m=String(e.message||'');
-    err.textContent=e.name==='AbortError'?'Está tardando más de lo normal. Tocá "Enviar pedido" de nuevo: si ya había entrado, te avisamos.':/Failed to fetch|NetworkError|Load failed|JSON/i.test(m)?'No pudimos enviar el pedido. Revisá tu conexión e intentá de nuevo.':m;
+    err.textContent=e.name==='AbortError'?'Está tardando más de lo normal. Tocá "Enviar pedido" de nuevo: si ya había entrado, te mostramos el número.':e.srv?m:'No pudimos enviar el pedido. Revisá tu conexión e intentá de nuevo.';
     if(/ya no está disponible|Estamos cerrados|no abrimos|pedido mínimo/i.test(m))cargar(true);
     b.textContent='Enviar pedido';b.disabled=falta()>0;
   }finally{enviando=false;}
@@ -385,16 +406,17 @@ async function enviar(ev){
 async function cargar(silencioso){
   const cat=silencioso?null:leer(KEY+':cat');
   if(cat){aplicar(cat);silencioso=true;}
-  else if(!silencioso){$('estado').hidden=false;$('estado').textContent='Cargando...';$('grid').hidden=true;}
+  else if(!silencioso){$('estado').hidden=true;$('grid').hidden=false;$('grid').innerHTML='<span class="sr">Cargando productos</span>'+'<div class="card sk" aria-hidden="true"><div class="ph"></div><div class="cb"><div class="nm">&nbsp;</div><div class="pr"></div></div></div>'.repeat(4);}
   try{
     const r=await fetch(API_URL+'?a=catalogo');
     const d=await r.json();
     if(!d.ok)throw new Error(d.error||'Error');
     guardar(KEY+':cat',{negocio:d.negocio,productos:d.productos,tienda:{minimo:(d.tienda||{}).minimo||0}});
+    guardar(KEY+':tema',d.tema||{});
     aplicar(d);
   }catch(e){
     if(silencioso)return;
-    $('estado').innerHTML='No pudimos cargar los productos.<br><button type="button" class="btn sec" data-act="reintentar">Reintentar</button>';
+    $('grid').hidden=true;$('estado').hidden=false;$('estado').innerHTML='No pudimos cargar los productos.<br><button type="button" class="btn sec" data-act="reintentar">Reintentar</button>';
   }
 }
 function aplicar(d){
@@ -403,7 +425,8 @@ function aplicar(d){
   Object.keys(CART).forEach(id=>{if(!prod(id))delete CART[id];});
   guardar(KEY,CART);
   document.title=NEG.nombre||'Tienda';
-  if(TEMA.logo)$('nombre').innerHTML='<img class="logo" src="'+esc(TEMA.logo)+'" alt="'+esc(NEG.nombre||'')+'">';
+  if(d.tema)pintarTema(d.tema);
+  if(TA.logo)$('nombre').innerHTML='<img class="logo" src="'+esc(TA.logo)+'" alt="'+esc(NEG.nombre||'')+'">';
   else $('nombre').textContent=NEG.nombre||'';
   $('tag').textContent=NEG.tagline||'';
   const chips=[];
